@@ -1,3 +1,5 @@
+(load "NowServing")
+
 (defn createPerson [id type]
   (if (= type "customer")
     [:id id :ticket-number nil :type "customer" :result nil]
@@ -33,11 +35,23 @@
 )
 
 ;servers need to do some sort of CPU intensive computation on behalf of the customer
-(defn serveCustomer [server customer now-serving]
+(defn serveCustomer [customer now-serving]
+  
+  (def server (pop (get now-serving :freeServers))
+  (def waitingCustomers (dissoc (get now-serving :watchingCustomers) customer)
+  (def freeServers HOWTOGETfreeServersPOSTPOP?)
+  (def newValue (inc (get now-serving :value)))
+  
   ;(fib (rand-int 50)) ;<-- CPU intensive computation
-  ; (assoc now-serving :value (inc (get now-serving :value))) <-- return this to everything that needs to look at "now-serving" all the time
-  ; (conj freeServers server) <-- return this to everything that needs to be looking at "freeServers" all the time
-  ;(inc now-serving)
+  
+  (def now-serving-new
+	  (makeNowServingObject ;[watchingCustomers value freeServers]
+	    waitingCustomers    ; make a new object with changed values of waiting customers
+	    newValue            ;new freeservers and the incremented value, then notify all customers
+	    freeServers
+	  )
+  )
+  (notifyCustomers now-serving-new) ;do this everytime VALUE is incremented
 )
 
 ;	When we start the system up, each customer should wait a random amount of time 
@@ -48,6 +62,19 @@
 (make-people 10 15)
 (def originalFreeServers (fillQueue 0 clojure.lang.PersistentQueue/EMPTY))
 ;quick example
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

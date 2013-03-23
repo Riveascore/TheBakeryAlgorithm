@@ -1,23 +1,42 @@
 (load "TicketMachine")
 (load "CustomerAndServer")
 
-(def now-serving
-  [:customers nil :value 0]
+(def now-serving-initial
+  [:watchingCustomers nil :value 0 :freeServers nil]
+)
+
+(defn makeNowServingObject [watchingCustomers value freeServers]
+  [:watchingCustomers watchingCustomers :value value :freeServers freeServers]
 )
 
 
-(defn notifyCustomers [customers freeServers]
-  (map notifyCustomer customers freeServers now-serving)
-  ;^make this pmap later
+(defn notifyCustomers [now-serving-object]
+  (map 
+    (fn [customer]
+      (notifyCustomer
+        customer
+        (get now-serving-object :watchingCustomers) 
+        (get now-serving-object :freeServers)
+      ))
+    (get now-serving-object :watchingCustomers)
+    
+  )
 )
 
-(defn notifyCustomer [customer freeServers now-serving]
+(defn notifyCustomer [customer now-serving]
+;  (def waitingCustomers (get now-serving-object :watchingCustomers))
+;  (def freeServers (get now-serving-object :freeServers))
+  
   (if (= 0 (compare (get now-serving :value) (get customer :ticket-number)))
-    (serveCustomer (pop freeServers) customer now-serving)
+    (serveCustomer customer now-serving)
+  )
 )
+  
+;(defn returnNewNowServingObject [customer freeServers now-serving]
+  
 
 (compare 5 5)
-
+;
 
 
 ;^needs customers (whenever customer takes a number it's added to now-serving object)
