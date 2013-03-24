@@ -5,11 +5,24 @@
   )
 )
 
+(defn fillQueue [ourQueue] 
+  (for [index (range (count servers))]
+    (swap! ourQueue conj (nth servers index))
+  )
+)
+;  (if (< index (count servers))
+;    (swap! ourQueue conj (nth servers index))
+;    (fillQueue (inc index) ourQueue)
+;  )
+
+
+
 (defn make-people [numberOfCustomers numberOfServers]
-  (def customers 
-    (for [x (range 0 numberOfCustomers)]
-      (createPerson x "customer")
-    )
+  (def customer-list 
+    (let [s {}]
+      (into s (for [i (range 0 numberOfCustomers)] 
+        {(keyword (str "customer" i)) (createPerson i "customer")})))      
+
   )
   (def servers 
     (for [x (range numberOfCustomers (+ numberOfCustomers numberOfServers))]
@@ -17,20 +30,11 @@
     )
   )
   
-  (def freeServers servers)
-  (def freeServers
-	  (-> (clojure.lang.PersistentQueue/EMPTY)
-	          (conj () (nth servers 1))
-	          peek)
-  )
+  (def freeServers (atom clojure.lang.PersistentQueue/EMPTY))
+  (fillQueue freeServers)
 )
 
-(defn fillQueue [index ourQueue] 
-  (if (< index (count servers))
-    (fillQueue (inc index) (conj ourQueue (nth servers index))) 
-    ourQueue
-  )
-)
+
 
 ;servers need to do some sort of CPU intensive computation on behalf of the customer
 (defn serveCustomer [server customer now-serving]
@@ -44,10 +48,7 @@
 ;	(something like (Thread/sleep (rand-int 1000)) will probably work fine) 
 ;	before taking a number. 
 
-;quick example
 (make-people 10 15)
-(def originalFreeServers (fillQueue 0 clojure.lang.PersistentQueue/EMPTY))
-;quick example
 
 
 
