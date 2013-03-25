@@ -1,21 +1,17 @@
 (defn createPerson [id type]
   (if (= type "customer")
-    [:id id :ticket-number nil :type "customer" :result nil]
-    [:id id :type "server"]
+    {:id id :ticket-number nil :type "customer" :result nil}
+    {:id id :type "server"}
   )
 )
 
-(defn fillQueue [ourQueue] 
-  (for [index (range (count servers))]
-    (swap! ourQueue conj (nth servers index))
+(def freeServers (atom clojure.lang.PersistentQueue/EMPTY))
+
+(defn fillQueue [listOfServers] 
+  (for [index (range (count listOfServers))]
+    (swap! freeServers conj (nth listOfServers index))
   )
 )
-;  (if (< index (count servers))
-;    (swap! ourQueue conj (nth servers index))
-;    (fillQueue (inc index) ourQueue)
-;  )
-
-
 
 (defn make-people [numberOfCustomers numberOfServers]
   (def customer-list 
@@ -29,26 +25,16 @@
       (createPerson x "server")
     )
   )
-  
-  (def freeServers (atom clojure.lang.PersistentQueue/EMPTY))
-  (fillQueue freeServers)
+)
+
+(defn add-to-queue [server]
+  (swap! freeServers conj server)
 )
 
 
+(make-people 30 6)
+;it's a giant bakery
 
-;servers need to do some sort of CPU intensive computation on behalf of the customer
-(defn serveCustomer [server customer now-serving]
-  ;(fib (rand-int 50)) ;<-- CPU intensive computation
-  ; (assoc now-serving :value (inc (get now-serving :value))) <-- return this to everything that needs to look at "now-serving" all the time
-  ; (conj freeServers server) <-- return this to everything that needs to be looking at "freeServers" all the time
-  ;(inc now-serving)
+(doseq [server servers]
+  (swap! freeServers conj server)
 )
-
-;	When we start the system up, each customer should wait a random amount of time 
-;	(something like (Thread/sleep (rand-int 1000)) will probably work fine) 
-;	before taking a number. 
-
-(make-people 10 15)
-
-
-
