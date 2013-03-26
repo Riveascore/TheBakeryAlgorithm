@@ -19,15 +19,15 @@
        x)))
 
 (defn serve [key]
-  
+  (println "being served")
   (remove-watch now-serving key)
+  
+  (comment
+  
   ;remove this customer as a watcher so it doesn't eat up cpu
+  (identity)
   
-  (def server (dequeue! freeServers))
   
-  (if (not= (peek @freeServers) nil)
-    (serve-next)
-  )
   ;if queue is not empty when we pop a server off, increment now-serving
   
   
@@ -43,6 +43,16 @@
   )
   ;if queue is empty right before we push a server on, increment now-serving
   (swap! freeServers conj server)
+  )
+)
+
+(defn popAndServe [key]
+  (def server (dequeue! freeServers))
+  (if (not= (peek @freeServers))
+    (serve-next)
+  )
+  (println server)
+  (send  server (serve key server))
 )
   
 
@@ -52,8 +62,7 @@
   (def customerTicket (:ticket-number @key))
   
   (if (= customerTicket new)
-;    (send (dequeue! freeServers) (serve key))
-    (println "I'm ready!")
+    (popAndServe key)
   )
 )
 

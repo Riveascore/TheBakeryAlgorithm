@@ -9,7 +9,7 @@
 (defn take-number [key]
   (def ticket (next-number))
   
-  (println "customer: " (:id @key) " was given ticket: " ticket)
+;  (println "customer: " (:id @key) " was given ticket: " ticket)
   (swap! key assoc :ticket-number ticket) 
   
   
