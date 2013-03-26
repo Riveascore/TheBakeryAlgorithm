@@ -1,5 +1,6 @@
-(load "CustomerAndServer")
 (load "eventsLog")
+(load "CustomerAndServer")
+
 
 (def now-serving (atom 0))
 
@@ -17,33 +18,42 @@
        (fib (conj x (+ (last x) (nth x (- (count x) 2)))) n)
        x)))
 
-(defn serve [customer, key]
-  (def server (dequeue! freeServers))
+(defn serve [key]
+  
   (remove-watch now-serving key)
+  ;remove this customer as a watcher so it doesn't eat up cpu
+  
+  (def server (dequeue! freeServers))
   
   (if (not= (peek @freeServers) nil)
     (serve-next)
   )
-  (def result (last (fib (rand-int 50))))
-    ;do events-log here
-    (def served-customer
-      (assoc customer :result result))
-    (println served-customer " was served!")
+  ;if queue is not empty when we pop a server off, increment now-serving
+  
+  
+  (def result (last (fib (rand-int 100))))
+  (swap! key update-in :result result)
+  ;computes fib, and gives result to customer
+  
+  ;do events-log here?
     
+  
+  (if (= (peek @freeServers) nil)
     (serve-next)
+  )
+  ;if queue is empty right before we push a server on, increment now-serving
+  (swap! freeServers conj server)
 )
   
 
 (defn now-serving-watch [key identity old new]
-  (def id-ticket-string (clojure.string/split (name key) #"_")) 
-  (def id (first id-ticket-string))
-  (def ticket (Integer/parseInt (last id-ticket-string)))
-  (def customer
-    {:id id :ticket-number ticket :result nil}
-  )
+;  (println (:ticket-number @key))
   
-  (if (= new (:ticket-number customer))
-    (serve customer, key)
+  (def customerTicket (:ticket-number @key))
+  
+  (if (= customerTicket new)
+;    (send (dequeue! freeServers) (serve key))
+    (println "I'm ready!")
   )
 )
 

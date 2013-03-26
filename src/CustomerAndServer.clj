@@ -1,40 +1,31 @@
+(load "OurQueue")
+
 (defn createPerson [id type]
   (if (= type "customer")
-    {:id id :ticket-number nil :type "customer" :result nil}
-    {:id id :type "server"}
+    (atom {:id id :ticket-number nil :type "customer" :result nil})
+    (agent {:id id :type "server"})
   )
 )
 
 (def freeServers (atom clojure.lang.PersistentQueue/EMPTY))
 
-(defn fillQueue [listOfServers] 
-  (for [index (range (count listOfServers))]
-    (swap! freeServers conj (nth listOfServers index))
-  )
-)
-
 (defn make-people [numberOfCustomers numberOfServers]
-  (def customer-list 
-    (let [s {}]
-      (into s (for [i (range 0 numberOfCustomers)] 
-        {(keyword (str "customer" i)) (createPerson i "customer")})))      
-
+  
+  (def customer-list
+    (map #(createPerson % "customer") (range 0 numberOfCustomers))
+    ;we gotta add these to a list to work with them SOMEHOW!
+    ;just make list of atoms, s'all good
+    ;customers are now atoms instead of being stored in a map (mapception...)
   )
-  (def servers 
-    (for [x (range numberOfCustomers (+ numberOfCustomers numberOfServers))]
-      (createPerson x "server")
-    )
-  )
-)
 
-(defn add-to-queue [server]
-  (swap! freeServers conj server)
+  (doseq [idNumber (range numberOfCustomers (+ numberOfCustomers numberOfServers))]
+    (def ourServer (createPerson idNumber "server"))
+    ;servers are now agents^
+    
+    (swap! freeServers conj ourServer)
+    ;we push^ servers onto the queue of freeServers right away
+  )
 )
 
 
 (make-people 30 6)
-;it's a giant bakery
-
-(doseq [server servers]
-  (swap! freeServers conj server)
-)
