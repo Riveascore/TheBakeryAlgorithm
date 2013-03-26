@@ -9,7 +9,7 @@
 (defn take-number [key]
   (def ticket (next-number))
   
-;  (println "customer: " (:id @key) " was given ticket: " ticket)
+  (println "customer: " (:id @key) " was given ticket: " ticket)
   (swap! key assoc :ticket-number ticket) 
   
   
@@ -21,5 +21,9 @@
   (swap! now-serving identity)
 )
 
-(map #(take-number %) customer-list)
+
+
+(make-people 30 6)
+;^create customers and servers
+(dorun (map #(take-number %) customer-list))
 ;^start giving customers tickets

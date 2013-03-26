@@ -3,7 +3,7 @@
 (defn createPerson [id type]
   (if (= type "customer")
     (atom {:id id :ticket-number nil :type "customer" :result nil})
-    (agent {:id id :type "server"})
+    {:id id :type "server"}
   )
 )
 
@@ -13,9 +13,6 @@
   
   (def customer-list
     (map #(createPerson % "customer") (range 0 numberOfCustomers))
-    ;we gotta add these to a list to work with them SOMEHOW!
-    ;just make list of atoms, s'all good
-    ;customers are now atoms instead of being stored in a map (mapception...)
   )
 
   (doseq [idNumber (range numberOfCustomers (+ numberOfCustomers numberOfServers))]
@@ -26,6 +23,3 @@
     ;we push^ servers onto the queue of freeServers right away
   )
 )
-
-
-(make-people 30 6)
