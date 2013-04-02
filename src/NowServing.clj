@@ -7,8 +7,10 @@
 
 (defn serve-next [] 
   (swap! now-serving inc)
-  (def now-serving-log (ref (str "Serving Customer Number: " @now-serving)))
-  (log-events now-serving-log console events-log)
+  
+  ;logging now-serving changes
+  (send events-log write "Now-serving: " @now-serving)
+  ;logging now-serving changes
 )
 
 (defn fib
@@ -20,42 +22,70 @@
        x)))
 
 
-(defn serve [key, server]
-
-  (def result (last (fib (rand-int 50))))
+(defn serve [serverAgent key]
+  (def fibInput (rand-int 50))
+  
+  ;logging a customer being served
+  (def serving-customer
+    (str "Customer " (:id @key) " is being served by Server " (:id serverAgent) " to calculate (fib " fibInput ").")) 
+  (send events-log write serving-customer)
+  ;logging a customer being served
+  
+  
+  (def result (last (fib fibInput)))
   (swap! key assoc :result result)
-  ;computes fib, and gives result to customer
-  
-  ;do events-log here?
-  
+  ;logging that customer was finished being served
+  (def customer-done-being-served
+    (str "Customer " (:id @key) " was given " result))
+  (send events-log write customer-done-being-served)
+  ;logging that customer was finished being served
   
   (if (= (peek @freeServers) nil)
-    (serve-next)
+    (do
+      (swap! freeServers conj (agent serverAgent))
+      ;logging queuing up of a server
+      (def server-queued-up 
+        (str "Server " (:id serverAgent) " was added to queue"))
+      (send events-log write server-queued-up)
+      ;logging queuing up of a server
+      
+      (serve-next))
+    (do
+      (swap! freeServers conj (agent serverAgent))
+      ;logging queuing up of a server
+      (def server-queued-up 
+        (str "Server " (:id serverAgent) " was added to queue"))
+      (send events-log write server-queued-up)
+    )
+      ;logging queuing up of a server
   )
-  ;if queue is empty right before we push a server on, increment now-serving
-  (println "Customer " (:id @key) " has been served, result is: " (:result @key))
-  (swap! freeServers conj server)
+  
+  serverAgent
 )
 
-
+(defn printIt [myAgent]
+  (println myAgent)
+  myAgent
+)
 
 (defn initialServe [key]
   (remove-watch now-serving key)
-  (def server (dequeue! freeServers))
-  (if (not= (peek @freeServers))
-    (println "should be serving someone new now")
+  (def serverAgent (dequeue! freeServers))
+  ;logging dequeuing a server
+  (def server-dequeued 
+    (str "Server " (:id @serverAgent) " was removed from queue"))
+  (send events-log write server-dequeued)
+  ;logging dequeuing a server
+  
+  (send serverAgent serve key)
+  
+  (if (not= (peek @freeServers) nil)
     (serve-next)
   )
   ;if queue is not empty when we pop a server off, increment now-serving
-  
-  (def serve-customer-thread (agent 100))
-  (send  serve-customer-thread (serve key server))
-  ;create agent thread and have it compute the results for a customer
-  ;so other customers can continue grabbin tickets
 )
 
 (defn now-serving-watch [key identity old new]
-;  (println (:ticket-number @key))
   
   (def customerTicket (:ticket-number @key))
   

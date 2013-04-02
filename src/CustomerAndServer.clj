@@ -3,7 +3,7 @@
 (defn createPerson [id type]
   (if (= type "customer")
     (atom {:id id :ticket-number nil :type "customer" :result nil})
-    {:id id :type "server"}
+    (agent {:id id :type "server"})
   )
 )
 
